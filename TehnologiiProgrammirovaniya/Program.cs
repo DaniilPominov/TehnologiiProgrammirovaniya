@@ -21,17 +21,16 @@ namespace TehnologiiProgrammirovaniya
 
             var dto = new ADTO() { Date = date, Time = time, Name = name, ObjType =  objType};
 
-            Console.WriteLine("Created "+dto.ToString());
+            Console.WriteLine("Created "+dto);
+            Console.WriteLine($"{dto.ObjType}, {dto.Date}, {dto.Time}, {dto.Name}");
 
         }
     }
     public class ADTO
     {
-        public string ObjType { get; set; }
+        public string ObjType { get; set; } = null!;
         public DateOnly Date { get; set; }
-
         public TimeOnly Time { get; set; }
-
         public string Name { get; set; } = null!;
     }
 }
