@@ -31,7 +31,7 @@ namespace TehnologiiProgrammirovaniya
                 { '-','-','-'},
                 { '-','-','-'} };
 
-            var newMap = moveStar(starMap, Actions.Left);
+            var newMap = moveStar(starMap, Actions.Up);
             for (int i = 0; i < newMap.GetLength(0); i++)
             {
                 for (int j = 0; j < newMap.GetLength(1); j++)
@@ -64,16 +64,16 @@ namespace TehnologiiProgrammirovaniya
                         switch (currentAction)
                         {
                             case Actions.Up:
-                                starMatrix[(i - 1) % n,j] = '*';
+                                starMatrix[((i - 1) % n+n)%n,j] = '*';
                                 return starMatrix;
                             case Actions.Down:
-                                starMatrix[(i + 1) % n,j] = '*';
+                                starMatrix[((i + 1) % n+n)%n,j] = '*';
                                 return starMatrix;
                             case Actions.Left:
-                                starMatrix[i,(j - 1) % m] = '*';
+                                starMatrix[i,((j - 1) %m+m)%m] = '*';
                                 return starMatrix;
                             case Actions.Right:
-                                starMatrix[i,(j + 1) % m] = '*';
+                                starMatrix[i,((j + 1) % m+m)%m] = '*';
                                 return starMatrix;
                         }
                     }
