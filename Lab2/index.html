@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Учебные занятия</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Учебные занятия</h1>
+      <div class="file-controls">
+        <button id="openFileBtn">Открыть файл</button>
+        <button id="addLessonBtn" class="add-btn">Добавить занятие</button>
+        <button id="deleteLessonBtn" class="delete-btn" disabled>Удалить</button>
+      </div>
+    </header>
+
+    <div class="data-container">
+      <table id="lessonsTable">
+        <thead>
+          <tr>
+            <th>Тип объекта</th>
+            <th>Дата</th>
+            <th>Время</th>
+            <th>Имя преподавателя</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="4" class="empty-state">
+              <div>📭 Нет данных</div>
+              <p>Откройте файл с данными или добавьте новое занятие</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="status-bar" id="statusBar"></div>
+  </div>
+
+  <div class="modal" id="addModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Добавить учебное занятие</h2>
+        <button class="close-modal" id="closeModalBtn">&times;</button>
+      </div>
+      <form id="lessonForm">
+        <div class="form-group">
+          <label for="objType">Тип объекта:</label>
+          <input type="text" id="objType" required>
+        </div>
+        <div class="form-group">
+          <label for="date">Дата (гггг.мм.дд):</label>
+          <input type="text" id="date" placeholder="2004.11.11" required>
+        </div>
+        <div class="form-group">
+          <label for="time">Время (чч:мм):</label>
+          <input type="text" id="time" placeholder="12:30" required>
+        </div>
+        <div class="form-group">
+          <label for="name">Имя преподавателя:</label>
+          <input type="text" id="name" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="close-modal" id="cancelBtn">Отмена</button>
+          <button type="submit" class="add-btn">Добавить</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
