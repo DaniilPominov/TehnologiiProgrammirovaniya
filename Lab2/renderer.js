@@ -43,7 +43,6 @@ async function handleOpenFile() {
   }
 }
 
-// Загрузка данных из файла
 async function loadLessonsFromFile() {
   try {
     const lines = await window.api.readFile(currentFilePath);
@@ -83,13 +82,12 @@ function parseLessonLine(line) {
   return { objType, date, time, name };
 }
 
-// Отображение таблицы занятий
 function renderLessonsTable() {
   if (lessons.length === 0) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="4" class="empty-state">
-          <div>📭 Нет данных</div>
+          <div> Нет данных</div>
           <p>Откройте файл с данными или добавьте новое занятие</p>
         </td>
       </tr>
