@@ -1,0 +1,47 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Electron: Debug Main & Renderer",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/Lab2/main.js",
+      "runtimeExecutable": "${workspaceFolder}/Lab2/node_modules/.bin/electron",
+      "runtimeArgs": [
+        ".",
+        "--remote-debugging-port=9223"
+      ],
+      "cwd": "${workspaceFolder}/Lab2",
+      "protocol": "inspector",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Electron: Debug Renderer",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9223,
+      "pathMapping": {
+        "/": "${workspaceFolder}/Lab2/",
+        "${workspaceFolder}/Lab2": "${workspaceFolder}/Lab2"
+      }
+    },
+    {
+      "name": "Node: Debug Lab1",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/TehnologiiProgrammirovaniya/bin/Debug/net10.0/TehnologiiProgrammirovaniya.dll",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Electron: Full Debug",
+      "configurations": [
+        "Electron: Debug Main & Renderer",
+        "Electron: Debug Renderer"
+      ]
+    }
+  ]
+}

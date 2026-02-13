@@ -1,61 +1,63 @@
-let currentFilePath = null;
-let lessons = [];
-let selectedRowIndex = null;
 
-// DOM элементы
-const openFileBtn = document.getElementById('openFileBtn');
-const addLessonBtn = document.getElementById('addLessonBtn');
-const deleteLessonBtn = document.getElementById('deleteLessonBtn');
-const tableBody = document.getElementById('tableBody');
-const addModal = document.getElementById('addModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const cancelBtn = document.getElementById('cancelBtn');
-const lessonForm = document.getElementById('lessonForm');
-const statusBar = document.getElementById('statusBar');
+class LessonApp{
+  constructor() {
+    this.lessons = [];
+    this.currentFilePath = null;
+    this.selectedRowIndex = null;
+    // DOM элементы
+    this.openFileBtn = document.getElementById('openFileBtn');
+    this.addLessonBtn = document.getElementById('addLessonBtn');
+    this.deleteLessonBtn = document.getElementById('deleteLessonBtn');
+    this.tableBody = document.getElementById('tableBody');
+    this.addModal = document.getElementById('addModal');
+    this.closeModalBtn = document.getElementById('closeModalBtn');
+    this.cancelBtn = document.getElementById('cancelBtn');
+    this.lessonForm = document.getElementById('lessonForm');
+    this.statusBar = document.getElementById('statusBar');
+  }
 
-// Инициализация приложения
-function initializeApp() {
-  setupEventListeners();
-  updateUIState();
+  // Инициализация приложения
+   initializeApp() {
+    this.setupEventListeners();
+    this.updateUIState();
+  }
+
+  // Настройка обработчиков событий
+   setupEventListeners() {
+    this.openFileBtn.addEventListener('click', this.handleOpenFile.bind(this));
+    this.addLessonBtn.addEventListener('click', () => this.openAddModal());
+    this.deleteLessonBtn.addEventListener('click', this.handleDeleteLesson.bind(this));
+    this.closeModalBtn.addEventListener('click', this.closeAddModal.bind(this));
+    this.cancelBtn.addEventListener('click', this.closeAddModal.bind(this));
+    this.lessonForm.addEventListener('submit', this.handleAddLesson.bind(this));
 }
-
-// Настройка обработчиков событий
-function setupEventListeners() {
-  openFileBtn.addEventListener('click', handleOpenFile);
-  addLessonBtn.addEventListener('click', () => openAddModal());
-  deleteLessonBtn.addEventListener('click', handleDeleteLesson);
-  closeModalBtn.addEventListener('click', closeAddModal);
-  cancelBtn.addEventListener('click', closeAddModal);
-  lessonForm.addEventListener('submit', handleAddLesson);
-}
-
 // Обработчик открытия файла
-async function handleOpenFile() {
+async handleOpenFile() {
   try {
     const filePath = await window.api.selectFile();
     if (filePath) {
-      currentFilePath = filePath;
-      await loadLessonsFromFile();
-      showStatus(`Файл загружен: ${filePath}`, 'success');
+      this.currentFilePath = filePath;
+      await this.loadLessonsFromFile();
+      this.showStatus(`Файл загружен: ${filePath}`, 'success');
     }
   } catch (error) {
-    showError(`Ошибка при открытии файла: ${error.message}`);
+    this.showError(`Ошибка при открытии файла: ${error.message}`);
   }
 }
-
-async function loadLessonsFromFile() {
+// Загрузка данных из файла
+async loadLessonsFromFile() {
   try {
-    const lines = await window.api.readFile(currentFilePath);
-    lessons = lines.map(parseLessonLine);
-    renderLessonsTable();
-    updateUIState();
+    const lines = await window.api.readFile(this.currentFilePath);
+    this.lessons = lines.map(this.parseLessonLine.bind(this));
+    this.renderLessonsTable();
+    this.updateUIState();
   } catch (error) {
-    showError(`Ошибка загрузки данных: ${error.message}`);
+    this.showError(`Ошибка загрузки данных: ${error.message}`);
   }
 }
 
 // Парсинг строки в объект занятия
-function parseLessonLine(line) {
+ parseLessonLine(line) {
   const colonIndex = line.indexOf(':');
   if (colonIndex === -1) {
     throw new Error(`Неверный формат строки: ${line}`);
@@ -81,10 +83,10 @@ function parseLessonLine(line) {
 
   return { objType, date, time, name };
 }
-
-function renderLessonsTable() {
-  if (lessons.length === 0) {
-    tableBody.innerHTML = `
+// Рендеринг таблицы занятий
+ renderLessonsTable() {
+  if (this.lessons.length === 0) {
+    this.tableBody.innerHTML = `
       <tr>
         <td colspan="4" class="empty-state">
           <div> Нет данных</div>
@@ -95,45 +97,45 @@ function renderLessonsTable() {
     return;
   }
 
-  tableBody.innerHTML = lessons.map((lesson, index) => `
+  this.tableBody.innerHTML = this.lessons.map((lesson, index) => `
     <tr data-index="${index}">
-      <td>${escapeHtml(lesson.objType)}</td>
-      <td>${escapeHtml(lesson.date)}</td>
-      <td>${escapeHtml(lesson.time)}</td>
-      <td>${escapeHtml(lesson.name)}</td>
+      <td>${LessonApp.escapeHtml(lesson.objType)}</td>
+      <td>${LessonApp.escapeHtml(lesson.date)}</td>
+      <td>${LessonApp.escapeHtml(lesson.time)}</td>
+      <td>${LessonApp.escapeHtml(lesson.name)}</td>
     </tr>
   `).join('');
 
   // Добавление обработчиков кликов по строкам
-  tableBody.querySelectorAll('tr').forEach(row => {
+  this.tableBody.querySelectorAll('tr').forEach(row => {
     row.addEventListener('click', () => {
-      handleRowSelect(row);
+      this.handleRowSelect(row);
     });
   });
 }
 
 // Обработчик выбора строки
-function handleRowSelect(row) {
-  tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
+ handleRowSelect(row) {
+  this.tableBody.querySelectorAll('tr').forEach(r => r.classList.remove('selected'));
   row.classList.add('selected');
-  selectedRowIndex = parseInt(row.dataset.index);
-  deleteLessonBtn.disabled = false;
+  this.selectedRowIndex = parseInt(row.dataset.index);
+  this.deleteLessonBtn.disabled = false;
 }
 
 // Открытие модального окна добавления
-function openAddModal() {
-  addModal.classList.add('active');
+ openAddModal() {
+  this.addModal.classList.add('active');
   document.getElementById('objType').focus();
 }
 
 // Закрытие модального окна
-function closeAddModal() {
-  addModal.classList.remove('active');
-  lessonForm.reset();
+ closeAddModal() {
+  this.addModal.classList.remove('active');
+  this.lessonForm.reset();
 }
 
 // Обработчик добавления занятия
-function handleAddLesson(event) {
+ handleAddLesson(event) {
   event.preventDefault();
 
   const objType = document.getElementById('objType').value.trim();
@@ -141,41 +143,41 @@ function handleAddLesson(event) {
   const time = document.getElementById('time').value.trim();
   const name = document.getElementById('name').value.trim();
 
-  if (!validateInput(objType, date, time, name)) {
+  if (!this.validateInput(objType, date, time, name)) {
     return;
   }
 
   const newLesson = { objType, date, time, name };
-  lessons.push(newLesson);
+  this.lessons.push(newLesson);
 
-  if (currentFilePath) {
-    saveLessonsToFile();
+  if (this.currentFilePath) {
+    this.saveLessonsToFile();
   }
 
-  renderLessonsTable();
-  closeAddModal();
-  showStatus('Занятие добавлено успешно', 'success');
-  updateUIState();
+  this.renderLessonsTable();
+  this.closeAddModal();
+  this.showStatus('Занятие добавлено успешно', 'success');
+  this.updateUIState();
 }
 
 // Валидация ввода
-function validateInput(objType, date, time, name) {
+ validateInput(objType, date, time, name) {
   if (!objType || !date || !time || !name) {
-    showError('Все поля обязательны для заполнения');
+    this.showError('Все поля обязательны для заполнения');
     return false;
   }
 
   // Проверка формата даты (гггг.мм.дд)
   const datePattern = /^\d{4}\.\d{2}\.\d{2}$/;
   if (!datePattern.test(date)) {
-    showError('Неверный формат даты. Используйте формат: гггг.мм.дд');
+    this.showError('Неверный формат даты. Используйте формат: гггг.мм.дд');
     return false;
   }
 
   // Проверка формата времени (чч:мм)
   const timePattern = /^\d{2}:\d{2}$/;
   if (!timePattern.test(time)) {
-    showError('Неверный формат времени. Используйте формат: чч:мм');
+    this.showError('Неверный формат времени. Используйте формат: чч:мм');
     return false;
   }
 
@@ -183,71 +185,73 @@ function validateInput(objType, date, time, name) {
 }
 
 // Обработчик удаления занятия
-function handleDeleteLesson() {
-  if (selectedRowIndex === null || selectedRowIndex < 0 || selectedRowIndex >= lessons.length) {
-    showError('Выберите занятие для удаления');
+ handleDeleteLesson() {
+  if (this.selectedRowIndex === null || this.selectedRowIndex < 0 || this.selectedRowIndex >= this.lessons.length) {
+    this.showError('Выберите занятие для удаления');
     return;
   }
 
-  const lessonName = lessons[selectedRowIndex].name;
+  const lessonName = this.lessons[this.selectedRowIndex].name;
   if (!confirm(`Вы уверены, что хотите удалить занятие "${lessonName}"?`)) {
     return;
   }
 
-  lessons.splice(selectedRowIndex, 1);
-  selectedRowIndex = null;
+  this.lessons.splice(this.selectedRowIndex, 1);
+  this.selectedRowIndex = null;
 
-  if (currentFilePath) {
-    saveLessonsToFile();
+  if (this.currentFilePath) {
+    this.saveLessonsToFile();
   }
 
-  renderLessonsTable();
-  showStatus('Занятие удалено успешно', 'success');
-  updateUIState();
+  this.renderLessonsTable();
+  this.showStatus('Занятие удалено успешно', 'success');
+  this.updateUIState();
 }
 
 // Сохранение данных в файл
-async function saveLessonsToFile() {
+async  saveLessonsToFile() {
   try {
-    const data = lessons.map(lesson => formatLessonLine(lesson)).join('\n');
-    await window.api.writeFile(currentFilePath, data);
+    const data = this.lessons.map(lesson => this.formatLessonLine(lesson)).join('\n');
+    await window.api.writeFile(this.currentFilePath, data);
   } catch (error) {
-    showError(`Ошибка сохранения файла: ${error.message}`);
+    this.showError(`Ошибка сохранения файла: ${error.message}`);
   }
 }
 
 // Форматирование объекта в строку
-function formatLessonLine(lesson) {
+ formatLessonLine(lesson) {
   return `${lesson.objType}: ${lesson.date} ${lesson.time} "${lesson.name}"`;
 }
 
-// Экранирование HTML для безопасности
-function escapeHtml(text) {
+// Экранирование HTML
+ static escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 }
 
 // Отображение статуса
-function showStatus(message, type = 'info') {
-  statusBar.textContent = message;
-  statusBar.className = `status-bar ${type}`;
-  statusBar.style.display = 'block';
+ showStatus(message, type = 'info') {
+  this.statusBar.textContent = message;
+  this.statusBar.className = `status-bar ${type}`;
+  this.statusBar.style.display = 'block';
 
   setTimeout(() => {
-    statusBar.style.display = 'none';
+    this.statusBar.style.display = 'none';
   }, 3000);
 }
 
-function showError(message) {
-  showStatus(message, 'error');
+ showError(message) {
+  this.showStatus(message, 'error');
   console.error(message);
 }
 
 // Обновление состояния
-function updateUIState() {
-  deleteLessonBtn.disabled = selectedRowIndex === null || lessons.length === 0;
+ updateUIState() {
+  this.deleteLessonBtn.disabled = this.selectedRowIndex === null || this.lessons.length === 0;
+}
 }
 
+const app = new LessonApp();
 // Инициализация приложения
-window.addEventListener('DOMContentLoaded', initializeApp);
+window.addEventListener('DOMContentLoaded', app.initializeApp.bind(app));
