@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron ."
+    "dev": "electron .",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +14,8 @@
   "type": "commonjs",
   "devDependencies": {
     "electron": "^40.2.1",
-    "electron-is-dev": "^3.0.1"
+    "electron-is-dev": "^3.0.1",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0"
   }
 }

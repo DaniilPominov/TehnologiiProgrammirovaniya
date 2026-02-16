@@ -44,17 +44,25 @@ async handleOpenFile() {
     this.showError(`Ошибка при открытии файла: ${error.message}`);
   }
 }
-// Загрузка данных из файла
-async loadLessonsFromFile() {
-  try {
-    const lines = await window.api.readFile(this.currentFilePath);
-    this.lessons = lines.map(this.parseLessonLine.bind(this));
-    this.renderLessonsTable();
-    this.updateUIState();
-  } catch (error) {
-    this.showError(`Ошибка загрузки данных: ${error.message}`);
+  // Загрузка данных из файла
+  async loadLessonsFromFile() {
+    try {
+      const lines = await window.api.readFile(this.currentFilePath);
+      this.lessons = [];
+      lines.forEach((line, idx) => {
+        try {
+          const lesson = this.parseLessonLine(line);
+          this.lessons.push(lesson);
+        } catch (err) {
+          console.error(`Некорректная строка в файле (строка ${idx + 1}): ${line}\nОшибка: ${err.message}`);
+        }
+      });
+      this.renderLessonsTable();
+      this.updateUIState();
+    } catch (error) {
+      this.showError(`Ошибка загрузки данных: ${error.message}`);
+    }
   }
-}
 
 // Парсинг строки в объект занятия
  parseLessonLine(line) {
@@ -255,3 +263,5 @@ async  saveLessonsToFile() {
 const app = new LessonApp();
 // Инициализация приложения
 window.addEventListener('DOMContentLoaded', app.initializeApp.bind(app));
+
+module.exports = { LessonApp };
