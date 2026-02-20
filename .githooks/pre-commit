@@ -1,0 +1,43 @@
+#!/bin/sh
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+	against=HEAD
+else
+	# Initial commit: diff against an empty tree object
+	against=$(git hash-object -t tree /dev/null)
+fi
+
+# If you want to allow non-ASCII filenames set this variable to true.
+allownonascii=$(git config --type=bool hooks.allownonascii)
+
+# Redirect output to stderr.
+exec 1>&2
+
+# Run linter.
+cd Lab2
+echo "Running linter..."
+npm run lint
+
+LINT_EXIT_CODE=$?
+	
+if [ $LINT_EXIT_CODE -ne 0 ]; then
+	echo "Static analysis failed. Commit aborted."
+	exit 1
+fi
+
+
+# Jest Tests
+echo "Running Jest tests..."
+# Run tests. 
+cd Lab2
+npm test
+	
+TEST_EXIT_CODE=$?
+	
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+	echo "Jest tests failed. Commit aborted."
+	exit 1
+fi
+
+
+exit 0
