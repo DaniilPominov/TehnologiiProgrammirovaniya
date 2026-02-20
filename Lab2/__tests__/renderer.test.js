@@ -1,5 +1,5 @@
 /** @jest-environment jsdom */
-const { LessonApp, LessonModel, LessonView, LessonController } = require("../renderer")
+const {LessonModel, LessonView } = require("../renderer")
 
 describe('LessonModel', () => {
     let model;
