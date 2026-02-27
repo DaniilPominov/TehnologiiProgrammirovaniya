@@ -1,12 +1,14 @@
 /** @jest-environment jsdom */
-const {LessonModel, LessonView } = require("../renderer")
+const {LessonModel, LessonView, CommandProcessor } = require("../renderer")
 
 describe('LessonModel', () => {
     let model;
+    let processor;
     let errorSpy;
 
     beforeEach(() => {
         model = new LessonModel();
+        processor = new CommandProcessor(model);
     });
 
     afterEach(() => {
@@ -119,6 +121,39 @@ describe('LessonModel', () => {
             expect(model.validateLesson(lesson)).toBeDefined();
         });
     });
+
+    describe('commandProcessor', () =>{
+        test('преобразует csv к формату с пробелам', () =>{
+            const csvinput = 'lecture; 2024.04.01; 09:00; "Введение в теорию вероятностей"';
+            expect(processor.normalizeCsvToStr(csvinput)).toBe('lecture: 2024.04.01 09:00 "Введение в теорию вероятностей"');
+
+        });
+        test('считывает строку с командой', async ()=>{
+            const commandLide = 'ADD lecture; 2024.04.01; 09:00; "Введение в теорию вероятностей"';
+            const modelLength = model.lessons.length;
+            await processor.executeCommand(commandLide);
+            expect(model.lessons[modelLength]).toEqual(
+                {
+                objType: 'lecture',
+                date: '2024.04.01',
+                time: '09:00',
+                name: 'Введение в теорию вероятностей',
+            }
+            );
+        });
+
+        test('считывает условие для REM',()=>{
+            const conditionString = 'date<2024.04.01';
+            const predicate = processor.parseCondition(conditionString);
+
+            const lessonMatch = {objType: 'lecture', date: '2024.03.01', time: '09:00', name: 'Введение в теорию вероятностей'};
+            const lessonNotMatch = {objType: 'lecture', date: '2024.04.01', time: '09:00', name: 'Введение в теорию вероятностей'};
+
+            expect(predicate(lessonMatch)).toBe(true);
+            expect(predicate(lessonNotMatch)).toBe(false);
+        });
+
+    });
 });
 
 describe('LessonView', () => {
@@ -127,6 +162,7 @@ describe('LessonView', () => {
       <button id="openFileBtn"></button>
       <button id="addLessonBtn"></button>
       <button id="deleteLessonBtn"></button>
+      <button id="commandsFileBtn"></button>
       <tbody id="tableBody"></tbody>
       <div id="addModal"></div>
       <button id="closeModalBtn"></button>

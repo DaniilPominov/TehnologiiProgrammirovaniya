@@ -1,0 +1,14 @@
+ADD lecture; 2024.04.01; 09:00; "Введение в теорию вероятностей"
+ADD seminar; 2024.04.01; 11:00; "Практикум по математическому анализу"
+ADD lab; 2024.04.02; 14:00; "Лабораторная работа по алгоритмам"
+ADD lecture; 2024.04.03; 10:00; "Методы оптимизации"
+ADD consultation; 2024.04.05; 15:30; "Консультация перед экзаменом"
+PRINT
+REM date<2024.04.01
+REM objType=lab
+REM name=Методы оптимизации
+
+REM time>14:00
+PRINT 
+
+SAVE C:\Users\dpomi\source\repos\TehnologiiProgrammirovaniya\Lab2\data\output_lessons.txt

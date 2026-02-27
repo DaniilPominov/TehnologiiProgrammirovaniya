@@ -1,3 +1,94 @@
+class CommandProcessor {
+
+  constructor(model, logger = console) {
+    this.model = model;
+    this.logger = logger;
+    this.commandHistory = [];
+  }
+
+  async processCommandsFile(commandsFilePath) {
+    const lines = await window.api.readFile(commandsFilePath);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      try {
+        await this.executeCommand(line);
+        this.commandHistory.push(line);
+      } catch (err) {
+        this.logger.error(`Ошибка выполнения команды в строке ${i + 1}: "${line}". ${err.message}`);
+      }
+    }
+  }
+
+  async executeCommand(commandLine) {
+    if (commandLine.startsWith('ADD')) {
+      const csvData = commandLine.substring(3).trim();
+      const data = this.normalizeCsvToStr(csvData);
+      const lesson = this.model.parseLessonLine(data);
+      this.model.addLesson(lesson);
+      this.logger.log(`Добавлено занятие: ${lesson.name}`);
+    } 
+    else if (commandLine.startsWith('REM')) {
+      const conditionStr = commandLine.substring(3).trim();
+      const condition = this.parseCondition(conditionStr);
+      const removedCount = this.model.removeLessonsByCondition(condition);
+      this.logger.log(`Удалено занятий по условию "${conditionStr}": ${removedCount}`);
+    } 
+    else if (commandLine.startsWith('SAVE')) {
+      const filePath = commandLine.substring(4).trim();
+      await this.model.saveLessonsToPath(filePath);
+      this.logger.log(`Данные сохранены в файл: ${filePath}`);
+
+    }
+    else if(commandLine.startsWith('PRINT')){
+        console.log(this.commandHistory);
+    }
+    else {
+      throw new Error(`Неизвестная команда: ${commandLine.split(' ')[0]}`);
+    }
+  }
+
+
+  normalizeCsvToStr(csvString) {
+  const parts = csvString.split(';').map(p => p.trim()).filter(p => p !== '');
+  
+  const objType = parts[0] + ':';
+  
+  const rest = parts.slice(1).join(' ');
+  
+  return `${objType} ${rest}`;
+}
+  parseCondition(conditionStr) {
+    const operators = [
+      { symbol: '<=', compare: (a, b) => a <= b },
+      { symbol: '>=', compare: (a, b) => a >= b },
+      { symbol: '<', compare: (a, b) => a < b },
+      { symbol: '>', compare: (a, b) => a > b },
+      { symbol: '=', compare: (a, b) => a == b },
+      { symbol: '==', compare: (a, b) => a == b },
+    ];
+
+    for (const op of operators) {
+      const idx = conditionStr.indexOf(op.symbol);
+      if (idx !== -1) {
+        const field = conditionStr.substring(0, idx).trim();
+        const valueStr = conditionStr.substring(idx + op.symbol.length).trim();
+        // predicate(lesson)
+        return (lesson) => {
+          const lessonValue = lesson[field];
+          if (lessonValue === undefined) return false;
+
+          const parsedValue = !isNaN(parseFloat(valueStr)) && !isNaN(lessonValue) 
+            ? parseFloat(valueStr) 
+            : valueStr;
+          return op.compare(lessonValue, parsedValue);
+        };
+      }
+    }
+    throw new Error(`Не распознано условие: ${conditionStr}`);
+  }
+}
+
 class LessonModel {
   constructor() {
     this.lessons = [];
@@ -24,6 +115,24 @@ class LessonModel {
       }
     });
   }
+
+removeLessonsByCondition(predicate) {
+  const initialLength = this.lessons.length;
+  this.lessons = this.lessons.filter(lesson => {
+    try {
+      return !predicate(lesson);
+    } catch (err) {
+      console.error(`Ошибка при проверке условия для занятия: ${err.message}`);
+      return true; 
+    }
+  });
+  return initialLength - this.lessons.length;
+}
+
+    async saveLessonsToPath(filePath) {
+    const data = this.lessons.map(lesson => this.formatLessonLine(lesson)).join('\n');
+    await window.api.writeFile(filePath, data);
+    }
 
   async saveLessonsToFile() {
     if (!this.currentFilePath) throw new Error('Отсутствует путь к файлу');
@@ -91,6 +200,7 @@ class LessonView {
     this.lessonForm = document.getElementById('lessonForm');
     this.statusBar = document.getElementById('statusBar');
     this.selectedRowIndex = null;
+
   }
 
   renderLessonsTable(lessons) {
@@ -175,6 +285,8 @@ class LessonView {
     this.closeModalBtn.addEventListener('click', () => controller.handleCloseAddModal());
     this.cancelBtn.addEventListener('click', () => controller.handleCloseAddModal());
     this.lessonForm.addEventListener('submit', (e) => controller.handleAddLesson(e));
+    this.commandsFileBtn = document.getElementById('commandsFileBtn');
+    this.commandsFileBtn?.addEventListener('click', () => controller.handleCommandsFile());
     this.tableBody.addEventListener('click', (e) => {
       const row = e.target.closest('tr[data-index]');
       if (row) controller.handleRowSelect(parseInt(row.dataset.index));
@@ -206,6 +318,21 @@ class LessonController {
       this.view.showError(`Ошибка при открытии файла: ${error.message}`);
     }
   }
+  async handleCommandsFile() {
+  try {
+    const filePath = await window.api.selectFile();
+    if (!filePath) return;
+    
+    const processor = new CommandProcessor(this.model);
+    await processor.processCommandsFile(filePath);
+    
+    this.view.renderLessonsTable(this.model.lessons);
+    this.view.showStatus(`Команды выполнены: ${filePath}`, 'success');
+    this.updateUIState();
+  } catch (error) {
+    this.view.showError(`Ошибка выполнения команд: ${error.message}`);
+  }
+}
 
   handleOpenAddModal() {
     this.view.showAddModal();
@@ -289,4 +416,4 @@ document.addEventListener('DOMContentLoaded', () => {
   app.initializeApp();
 });
 
-module.exports = { LessonApp, LessonModel, LessonView, LessonController };
+module.exports = { LessonApp, LessonModel, LessonView, LessonController, CommandProcessor };
